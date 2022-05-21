@@ -18,4 +18,4 @@ jobs:
           heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
           heroku_email: "d.konasov@yandex.ru"
         env:
-          HOST: https://${{secrets.HEROKU_APP_NAME}}.herokuapp.com
+          HD_HOST: https://${{secrets.HEROKU_APP_NAME}}.herokuapp.com
