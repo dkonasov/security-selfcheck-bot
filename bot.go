@@ -59,10 +59,16 @@ func (bot *Bot) Start() error {
 			w.WriteHeader(400)
 			fmt.Fprint(w, "Bad request")
 		} else {
-			// TODO: отладочный вывод, надо убрать
-			fmt.Println("Bot request: " + string(res))
-			w.WriteHeader(200)
-			fmt.Fprint(w, "OK")
+			var update Update
+			err = json.Unmarshal(res, &update)
+			if err != nil {
+				w.WriteHeader(400)
+				fmt.Fprint(w, "Bad request")
+			} else {
+				bot.webhook(update, bot)
+				w.WriteHeader(200)
+				fmt.Fprint(w, "OK")
+			}
 		}
 	}
 	http.HandleFunc("/bwh", handler)
