@@ -54,10 +54,16 @@ func (bot *Bot) Start() error {
 		}
 	}
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		// TODO: отладочный вывод, надо убрать
-		fmt.Println(io.ReadAll(r.Body))
-		w.WriteHeader(200)
-		fmt.Fprint(w, "OK")
+		res, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(400)
+			fmt.Fprint(w, "Bad request")
+		} else {
+			// TODO: отладочный вывод, надо убрать
+			fmt.Println("Bot request: " + string(res))
+			w.WriteHeader(200)
+			fmt.Fprint(w, "OK")
+		}
 	}
 	http.HandleFunc("/bwh", handler)
 	return http.ListenAndServe(":"+bot.webhook_port, nil)
