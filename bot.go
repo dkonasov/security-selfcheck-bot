@@ -29,7 +29,7 @@ func (bot *Bot) doMethod(methodName string) (string, error) {
 func (bot *Bot) Start() {
 	// TODO: отладочный вывод, надо удалить
 	fmt.Println("Bot host:" + bot.webhook_host)
-	fmt.Println("Bot token:" + bot.webhook_host)
+	fmt.Println("Bot token:" + bot.token)
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		fmt.Fprint(w, "OK")
