@@ -1,5 +1,5 @@
 package main
 
 type Update struct {
-	Message Message
+	Message Message `json:"message"`
 }
