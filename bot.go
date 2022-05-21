@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 type Bot struct {
@@ -13,8 +15,12 @@ type Bot struct {
 	webhook      WebhookHandler
 }
 
-func (bot *Bot) doMethod(methodName string) (string, error) {
-	resp, err := http.Get("https://api.telegram.org/bot" + bot.token + "/" + methodName)
+func (bot *Bot) doMethod(methodName string, params url.Values) (string, error) {
+	method_url := "https://api.telegram.org/bot" + bot.token + "/" + methodName
+	if len(params) > 0 {
+		method_url += ("?" + params.Encode())
+	}
+	resp, err := http.Get(method_url)
 	if err != nil {
 		return "", err
 	}
@@ -26,14 +32,33 @@ func (bot *Bot) doMethod(methodName string) (string, error) {
 	return string(body), nil
 }
 
-func (bot *Bot) Start() {
-	// TODO: отладочный вывод, надо удалить
-	fmt.Println("Bot host:" + bot.webhook_host)
-	fmt.Println("Bot token:" + bot.token)
+func (bot *Bot) Start() error {
+	get_webhook_response, err := bot.doMethod("getWebhookInfo", make(url.Values))
+	if err != nil {
+		return err
+	}
+	_ = get_webhook_response
+	var webhook GetWebhookResponse
+	err = json.Unmarshal([]byte(get_webhook_response), &webhook)
+	if err != nil {
+		return err
+	}
+	webhook_url := bot.webhook_host + "/bwh"
+	if webhook.Result.Url != webhook_url {
+		set_webhook_params := make(url.Values)
+		set_webhook_params.Set("url", webhook_url)
+		response, err := bot.doMethod("setWebhook", set_webhook_params)
+		_ = response
+		if err != nil {
+			return err
+		}
+	}
 	handler := func(w http.ResponseWriter, r *http.Request) {
+		// TODO: отладочный вывод, надо убрать
+		fmt.Println(io.ReadAll(r.Body))
 		w.WriteHeader(200)
 		fmt.Fprint(w, "OK")
 	}
 	http.HandleFunc("/bwh", handler)
-	http.ListenAndServe(":"+bot.webhook_port, nil)
+	return http.ListenAndServe(":"+bot.webhook_port, nil)
 }
